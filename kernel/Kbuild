@@ -1,3 +1,0 @@
-obj-m += tpmproxy.o
-
-tpmproxy-y += tpmproxy.o

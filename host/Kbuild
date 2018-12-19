@@ -1,0 +1,3 @@
+obj-m += tpmproxy.o
+
+tpmproxy-y += tpm-proxy-driver.o
