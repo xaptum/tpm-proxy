@@ -32,7 +32,7 @@
 #define USB_DEV_TUN_EPOUT "/root/usbg/ep4"
 
 #define USBG_VID     0x2FE0
-#define USBG_PID     0x8B01
+#define USBG_PID     0x7B01
 
 enum {
     STRINGID_MANUFACTURER = 1,

@@ -18,7 +18,7 @@
 
 /* Define these values to match your devices */
 #define USB_TPMP_VENDOR_ID      0x2FE0
-#define USB_TPMP_PRODUCT_ID     0x8B01
+#define USB_TPMP_PRODUCT_ID     0x7B01
 
 /* table of devices that work with this driver */
 static const struct usb_device_id tpmp_table[] = {
@@ -486,7 +486,7 @@ static const struct file_operations tpmp_fops = {
  * and to have the device registered with the driver core
  */
 static struct usb_class_driver tpmp_class = {
-	.name       = "rc_tpm%d",
+	.name       = "tpmp%d",
 	.fops       = &tpmp_fops,
 	.minor_base = USB_TPMP_MINOR_BASE,
 };
@@ -624,7 +624,7 @@ static int tpmp_probe(struct usb_interface *interface,
 
 	/* let the user know what node this device is now attached to */
 	dev_info(&interface->dev,
-		 "USB TPM proxy device now attached to rc_tpm%d",
+		 "USB TPM proxy device now attached to tpmp%d",
 		 interface->minor);
 	return 0;
 
