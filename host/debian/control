@@ -1,0 +1,17 @@
+Source: tpm-proxy
+Section: admin
+Priority: optional
+Maintainer: David R. Bild <david.bild@xaptum.com>
+Build-Depends: debhelper (>= 10), dkms
+Standards-Version: 3.9.8
+Homepage: https://github.com/xaptum/tpm-proxy
+
+Package: tpm-proxy-dkms
+Architecture: all
+Depends: dkms, ${misc:Depends}
+Description: Kernel driver for the Xaptum TPM proxy USB gadget.
+ The TPM proxy gadget and driver expose a TPM on an attached embedded
+ Linux device as a TPM on host.
+ .
+ This package install the driver source files and configures DKMS to
+ compile the driver for the currently running kernel.
