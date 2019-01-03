@@ -15,6 +15,7 @@
 #include <linux/usb.h>
 #include <linux/mutex.h>
 
+#include "tpmproxy-backports.h"
 
 /* Define these values to match your devices */
 #define USB_TPMP_VENDOR_ID      0x2FE0
@@ -241,7 +242,6 @@ static ssize_t tpmp_read(struct file *file, char *buffer, size_t count,
 		goto exit;
 	}
 
-    //printk("tpmp_read %d bytes\r\n", count);
     tpmp_do_read_io(dev, count);
 
 	/* if IO is under way, we must not touch things */
@@ -256,7 +256,6 @@ retry:
 			rv = -EAGAIN;
 			goto exit;
 		}*/
-        //printk("Waiting for RX USB\r\n");
 		/*
 		 * IO may take forever
 		 * hence wait in an interruptible state
@@ -264,9 +263,7 @@ retry:
 		rv = wait_event_interruptible(dev->bulk_in_wait, (!dev->ongoing_read));
 		if (rv < 0)
 			goto exit;
-	} else {
-        //printk("Waiting for RX USB = ongoing_io false\r\n");
-    }
+	}
 
 	/* errors must be reported */
 	rv = dev->errors;
@@ -490,77 +487,6 @@ static struct usb_class_driver tpmp_class = {
 	.fops       = &tpmp_fops,
 	.minor_base = USB_TPMP_MINOR_BASE,
 };
-
-static bool match_endpoint(struct usb_endpoint_descriptor *epd,
-		struct usb_endpoint_descriptor **bulk_in,
-		struct usb_endpoint_descriptor **bulk_out,
-		struct usb_endpoint_descriptor **int_in,
-		struct usb_endpoint_descriptor **int_out)
-{
-	switch (usb_endpoint_type(epd)) {
-	case USB_ENDPOINT_XFER_BULK:
-		if (usb_endpoint_dir_in(epd)) {
-			if (bulk_in && !*bulk_in) {
-				*bulk_in = epd;
-				break;
-			}
-		} else {
-			if (bulk_out && !*bulk_out) {
-				*bulk_out = epd;
-				break;
-			}
-		}
-
-		return false;
-	case USB_ENDPOINT_XFER_INT:
-		if (usb_endpoint_dir_in(epd)) {
-			if (int_in && !*int_in) {
-				*int_in = epd;
-				break;
-			}
-		} else {
-			if (int_out && !*int_out) {
-				*int_out = epd;
-				break;
-			}
-		}
-
-		return false;
-	default:
-		return false;
-	}
-
-	return (!bulk_in || *bulk_in) && (!bulk_out || *bulk_out) &&
-			(!int_in || *int_in) && (!int_out || *int_out);
-}
-
-static int usb_find_common_endpoints(struct usb_host_interface *alt,
-		struct usb_endpoint_descriptor **bulk_in,
-		struct usb_endpoint_descriptor **bulk_out,
-		struct usb_endpoint_descriptor **int_in,
-		struct usb_endpoint_descriptor **int_out)
-{
-	struct usb_endpoint_descriptor *epd;
-	int i;
-
-	if (bulk_in)
-		*bulk_in = NULL;
-	if (bulk_out)
-		*bulk_out = NULL;
-	if (int_in)
-		*int_in = NULL;
-	if (int_out)
-		*int_out = NULL;
-
-	for (i = 0; i < alt->desc.bNumEndpoints; ++i) {
-		epd = &alt->endpoint[i].desc;
-
-		if (match_endpoint(epd, bulk_in, bulk_out, int_in, int_out))
-			return 0;
-	}
-
-	return -ENXIO;
-}
 
 static int tpmp_probe(struct usb_interface *interface,
 		      const struct usb_device_id *id)
