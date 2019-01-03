@@ -450,7 +450,7 @@ static const struct file_operations tpmp_fops = {
 	.write =	tpmp_write,
 	.open =	tpmp_open,
 	.release =	tpmp_release,
-	.llseek =	noop_llseek,
+	.llseek =	no_llseek,
 };
 
 /*
