@@ -131,30 +131,6 @@ static int tpmp_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static int tpmp_flush(struct file *file, fl_owner_t id)
-{
-	struct usb_tpmp *dev;
-	int res;
-
-	dev = file->private_data;
-	if (dev == NULL)
-		return -ENODEV;
-
-	/* wait for io to stop */
-	mutex_lock(&dev->io_mutex);
-	tpmp_draw_down(dev);
-
-	/* read out errors, leave subsequent opens a clean slate */
-	spin_lock_irq(&dev->err_lock);
-	res = dev->errors ? (dev->errors == -EPIPE ? -EPIPE : -EIO) : 0;
-	dev->errors = 0;
-	spin_unlock_irq(&dev->err_lock);
-
-	mutex_unlock(&dev->io_mutex);
-
-	return res;
-}
-
 static void tpmp_read_bulk_callback(struct urb *urb)
 {
 	struct usb_tpmp *dev;
@@ -470,11 +446,10 @@ exit:
 
 static const struct file_operations tpmp_fops = {
 	.owner =	THIS_MODULE,
-	.read =		tpmp_read,
+	.read =	tpmp_read,
 	.write =	tpmp_write,
-	.open =		tpmp_open,
+	.open =	tpmp_open,
 	.release =	tpmp_release,
-	.flush =	tpmp_flush,
 	.llseek =	noop_llseek,
 };
 
