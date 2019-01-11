@@ -17,6 +17,9 @@
 
 #include "tpmproxy-backports.h"
 
+/* We can read 4k from the device */
+#define USBG_READ_MAX 4096
+
 /* Define these values to match your devices */
 #define USB_TPMP_VENDOR_ID      0x2FE0
 #define USB_TPMP_PRODUCT_ID     0x7B01
@@ -168,7 +171,7 @@ static int tpmp_do_read_io(struct usb_tpmp *dev, size_t count)
 			usb_rcvbulkpipe(dev->udev,
 				dev->bulk_in_endpointAddr),
 			dev->bulk_in_buffer,
-			min(dev->bulk_in_size, count),
+			min(USBG_READ_MAX, count),
 			tpmp_read_bulk_callback,
 			dev);
 	/* tell everybody to leave the URB alone */
@@ -497,7 +500,7 @@ static int tpmp_probe(struct usb_interface *interface,
 
 	dev->bulk_in_size = usb_endpoint_maxp(bulk_in);
 	dev->bulk_in_endpointAddr = bulk_in->bEndpointAddress;
-	dev->bulk_in_buffer = kmalloc(dev->bulk_in_size, GFP_KERNEL);
+	dev->bulk_in_buffer = kmalloc(USBG_READ_MAX, GFP_KERNEL);
 	if (!dev->bulk_in_buffer) {
 		retval = -ENOMEM;
 		goto error;
