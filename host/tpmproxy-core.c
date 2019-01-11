@@ -215,6 +215,15 @@ static ssize_t tpmp_read(struct file *file, char *buffer, size_t count,
 	rv = mutex_lock_interruptible(&dev->io_mutex);
 	if (rv < 0)
 		return rv;
+	
+	/* 
+	The read size given back will always be 4096 and will always be lesser or equal. 
+	If we come here a second time the entire read has been completed and we should exit.
+	*/
+	if(*ppos > 0){
+		rv = 0;
+		goto exit;
+	}
 
 	if (!dev->interface) {		/* disconnect() was called */
 		rv = -ENODEV;
@@ -269,8 +278,10 @@ retry:
 				 dev->bulk_in_buffer + dev->bulk_in_copied,
 				 chunk))
 			rv = -EFAULT;
-		else
+		else{
 			rv = chunk;
+			*ppos += chunk;
+		}
 
         dev->bulk_in_copied = 0;
 	}
