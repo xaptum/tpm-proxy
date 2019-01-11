@@ -230,11 +230,6 @@ retry:
 	spin_unlock_irq(&dev->err_lock);
 
 	if (ongoing_io) {
-		/* nonblocking IO shall not wait */
-		/*if (file->f_flags & O_NONBLOCK) {
-			rv = -EAGAIN;
-			goto exit;
-		}*/
 		/*
 		 * IO may take forever
 		 * hence wait in an interruptible state
@@ -265,18 +260,6 @@ retry:
 		size_t available = dev->bulk_in_filled - dev->bulk_in_copied;
 		size_t chunk = min(available, count);
 
-		if (!available) {
-			/*
-			 * all data has been used
-			 * actual IO needs to be done
-			 */
-			/*rv = tpmp_do_read_io(dev, count);
-			if (rv < 0)
-				goto exit;
-			else
-				goto retry;*/
-		}
-        //printk("Got RX USB (%d)\r\n", available);
 		/*
 		 * data is available
 		 * chunk tells us how much shall be copied
@@ -289,22 +272,7 @@ retry:
 		else
 			rv = chunk;
 
-		//dev->bulk_in_copied += chunk;
         dev->bulk_in_copied = 0;
-
-		/*
-		 * if we are asked for more than we have,
-		 * we start IO but don't wait
-		 */
-		//if (available < count)
-		//	tpmp_do_read_io(dev, count - chunk);
-	} else {
-		/* no data in the buffer */
-		/*rv = tpmp_do_read_io(dev, count);
-		if (rv < 0)
-			goto exit;
-		else
-			goto retry;*/
 	}
 exit:
 	mutex_unlock(&dev->io_mutex);
