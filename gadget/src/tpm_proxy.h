@@ -1,3 +1,4 @@
+
 /**
  * @brief TPM proxy functionality header
  *
@@ -10,7 +11,7 @@
 #define TPM_TH_STACK_SZ             (65535)
 #define TPM_WAIT_USBG_THR_STOP      (100)
 #define TPM_WAIT_USBG_CONN          (10000)
-#define USBG_READ_MAX               (512)
+#define USBG_READ_MAX               (4096)
 
 
 int  tpm_proxy_init(void);

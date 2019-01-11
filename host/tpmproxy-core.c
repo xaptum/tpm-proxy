@@ -17,6 +17,9 @@
 
 #include "tpmproxy-backports.h"
 
+/* We can read 4k from the device */
+#define USBG_READ_MAX 4096
+
 /* Define these values to match your devices */
 #define USB_TPMP_VENDOR_ID      0x2FE0
 #define USB_TPMP_PRODUCT_ID     0x7B01
@@ -168,7 +171,7 @@ static int tpmp_do_read_io(struct usb_tpmp *dev, size_t count)
 			usb_rcvbulkpipe(dev->udev,
 				dev->bulk_in_endpointAddr),
 			dev->bulk_in_buffer,
-			min(dev->bulk_in_size, count),
+			min(USBG_READ_MAX, count),
 			tpmp_read_bulk_callback,
 			dev);
 	/* tell everybody to leave the URB alone */
@@ -212,6 +215,15 @@ static ssize_t tpmp_read(struct file *file, char *buffer, size_t count,
 	rv = mutex_lock_interruptible(&dev->io_mutex);
 	if (rv < 0)
 		return rv;
+	
+	/* 
+	The read size given back will always be 4096 and will always be lesser or equal. 
+	If we come here a second time the entire read has been completed and we should exit.
+	*/
+	if(*ppos > 0){
+		rv = 0;
+		goto exit;
+	}
 
 	if (!dev->interface) {		/* disconnect() was called */
 		rv = -ENODEV;
@@ -227,11 +239,6 @@ retry:
 	spin_unlock_irq(&dev->err_lock);
 
 	if (ongoing_io) {
-		/* nonblocking IO shall not wait */
-		/*if (file->f_flags & O_NONBLOCK) {
-			rv = -EAGAIN;
-			goto exit;
-		}*/
 		/*
 		 * IO may take forever
 		 * hence wait in an interruptible state
@@ -262,18 +269,6 @@ retry:
 		size_t available = dev->bulk_in_filled - dev->bulk_in_copied;
 		size_t chunk = min(available, count);
 
-		if (!available) {
-			/*
-			 * all data has been used
-			 * actual IO needs to be done
-			 */
-			/*rv = tpmp_do_read_io(dev, count);
-			if (rv < 0)
-				goto exit;
-			else
-				goto retry;*/
-		}
-        //printk("Got RX USB (%d)\r\n", available);
 		/*
 		 * data is available
 		 * chunk tells us how much shall be copied
@@ -283,25 +278,12 @@ retry:
 				 dev->bulk_in_buffer + dev->bulk_in_copied,
 				 chunk))
 			rv = -EFAULT;
-		else
+		else{
 			rv = chunk;
+			*ppos += chunk;
+		}
 
-		//dev->bulk_in_copied += chunk;
         dev->bulk_in_copied = 0;
-
-		/*
-		 * if we are asked for more than we have,
-		 * we start IO but don't wait
-		 */
-		//if (available < count)
-		//	tpmp_do_read_io(dev, count - chunk);
-	} else {
-		/* no data in the buffer */
-		/*rv = tpmp_do_read_io(dev, count);
-		if (rv < 0)
-			goto exit;
-		else
-			goto retry;*/
 	}
 exit:
 	mutex_unlock(&dev->io_mutex);
@@ -497,7 +479,7 @@ static int tpmp_probe(struct usb_interface *interface,
 
 	dev->bulk_in_size = usb_endpoint_maxp(bulk_in);
 	dev->bulk_in_endpointAddr = bulk_in->bEndpointAddress;
-	dev->bulk_in_buffer = kmalloc(dev->bulk_in_size, GFP_KERNEL);
+	dev->bulk_in_buffer = kmalloc(USBG_READ_MAX, GFP_KERNEL);
 	if (!dev->bulk_in_buffer) {
 		retval = -ENOMEM;
 		goto error;
