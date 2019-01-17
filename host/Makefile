@@ -13,6 +13,9 @@ KDIR ?= /lib/modules/`uname -r`/build
 default:
 	$(MAKE) -C $(KDIR) M=$$PWD
 
+debug:
+	$(MAKE) EXTRA_CFLAGS='-DTPM_DEBUG'
+
 install:
 	$(MAKE) -C $(KDIR) M=$$PWD modules_install
 	depmod

@@ -32,6 +32,42 @@ static const struct usb_device_id tpmp_table[] = {
 MODULE_DEVICE_TABLE(usb, tpmp_table);
 
 
+#ifdef TPM_DEBUG
+/* Dumps an arbitrary sequence of bytes to the kernel logs */
+static void tpmp_kdumphex(const void* data, size_t size)
+{
+	char ascii[17];
+	size_t i, j;
+
+	printk("tpmpproxy debug: Dumping %lu bytes",size);
+
+	ascii[16] = '\0';
+	for (i = 0; i < size; ++i) {
+		printk( "%02X ", ((unsigned char*)data)[i]);
+		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+			ascii[i % 16] = ((unsigned char*)data)[i];
+		} else {
+			ascii[i % 16] = '.';
+		}
+		if ((i+1) % 8 == 0 || i+1 == size) {
+			printk(KERN_CONT " ");
+			if ((i+1) % 16 == 0) {
+				printk(KERN_CONT "|  %s \n", ascii);
+			} else if (i+1 == size) {
+				ascii[(i+1) % 16] = '\0';
+				if ((i+1) % 16 <= 8) {
+					printk(KERN_CONT " ");
+				}
+				for (j = (i+1) % 16; j < 16; ++j) {
+					printk(KERN_CONT "   ");
+				}
+				printk(KERN_CONT "|  %s \n", ascii);
+			}
+		}
+	}
+}
+#endif
+
 /* Get a minor range for your devices from the usb maintainer */
 #define USB_TPMP_MINOR_BASE	 192 + 2
 
