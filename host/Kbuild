@@ -1,3 +1,3 @@
 obj-m += tpmproxy.o
 
-tpmproxy-y += tpm-proxy-driver.o
+tpmproxy-y += tpmproxy-core.o tpmproxy-backports.o
