@@ -1,5 +1,5 @@
-tpm-proxy (0.1.0-1) unstable; urgency=medium
+tpm-proxy (0.1.0~20190118~e75d7f2) unstable; urgency=medium
 
   * Initial release.
 
--- David R. Bild <david.bild@xaptum.com>  Wed, 02 Jan 2019 17:51:19 -0500
+ -- David R. Bild <david.bild@xaptum.com>  Fri, 18 Jan 2019 21:15:29 -0500
