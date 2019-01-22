@@ -1,0 +1,13 @@
+[Unit]
+Description=Xaptum TPM Gadget
+Conflicts=shutdown.target
+
+[Service]
+Type=forking
+User=root
+WorkingDirectory=/
+ExecStart=/usr/bin/tpm_gadget
+StandardOutput=console
+
+[Install]
+WantedBy=multi-user.target

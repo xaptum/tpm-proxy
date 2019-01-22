@@ -8,6 +8,7 @@ project(tpm_proxy
 include(GNUInstallDirs)
 
 
+set(INSTALL_SYSTEMDDIR /lib/systemd/system)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
@@ -33,6 +34,11 @@ set_target_properties(tpm_gadget
   PROPERTIES
   C_STANDARD 99
 )
+
+install(
+  FILES tpm-gadget.service
+  DESTINATION ${INSTALL_SYSTEMDDIR}
+ )
 
 install(
   TARGETS tpm_gadget
