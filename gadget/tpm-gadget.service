@@ -3,7 +3,7 @@ Description=Xaptum TPM Gadget
 Conflicts=shutdown.target
 
 [Service]
-Type=forking
+Type=simple
 User=root
 WorkingDirectory=/
 ExecStart=/usr/bin/tpm_gadget
